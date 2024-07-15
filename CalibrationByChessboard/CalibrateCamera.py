@@ -15,8 +15,8 @@ objpoints = [] # 3D point in real world space where chess squares are
 imgpoints = [] # 2D point in image plane, determined by CV2
 
 # Chessboard variables
-CHESSBOARD_CORNERS_ROWCOUNT = 9
-CHESSBOARD_CORNERS_COLCOUNT = 6
+CHESSBOARD_CORNERS_ROWCOUNT = 7
+CHESSBOARD_CORNERS_COLCOUNT = 4
 
 # Theoretical object points for the chessboard we're calibrating against,
 # These will come out like: 
@@ -32,7 +32,8 @@ objp[:,:2] = numpy.mgrid[0:CHESSBOARD_CORNERS_ROWCOUNT,0:CHESSBOARD_CORNERS_COLC
 # Need a set of images or a video taken with the camera you want to calibrate
 # I'm using a set of images taken with the camera with the naming convention:
 # 'camera-pic-of-chessboard-<NUMBER>.jpg'
-images = glob.glob('./camera-pic-of-chessboard-*.jpg')
+images = glob.glob('/home/pi/opencv-examples/CalibrationByChessboard/camera-pic-of-chessboard-*.jpg')
+# images = glob.glob('/home/pi/opencv-examples/CalibrationByChessboard/test_*.jpg')
 # All images used should be the same size, which if taken with the same camera shouldn't be a problem
 imageSize = None # Determined at runtime
 
@@ -46,7 +47,7 @@ for iname in images:
     # Find chessboard in the image, setting PatternSize(2nd arg) to a tuple of (#rows, #columns)
     board, corners = cv2.findChessboardCorners(gray, (CHESSBOARD_CORNERS_ROWCOUNT,CHESSBOARD_CORNERS_COLCOUNT), None)
 
-    # If a chessboard was found, let's collect image/corner points
+    # If a chessboard was found, let's collect image/corner pointsi
     if board == True:
         # Add the points in 3D that we just discovered
         objpoints.append(objp)
@@ -107,7 +108,7 @@ print(distCoeffs)
 # Save values to be used where matrix+dist is required, for instance for posture estimation
 # I save files in a pickle file, but you can use yaml or whatever works for you
 f = open('calibration.pckl', 'wb')
-pickle.dump((cameraMatrix, distCoeffs, rvecs, tvecs), f)
+pickle.dump([cameraMatrix, distCoeffs, rvecs, tvecs], f)
 f.close()
     
 # Print to console our success
