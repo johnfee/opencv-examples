@@ -15,8 +15,8 @@ objpoints = [] # 3D point in real world space where chess squares are
 imgpoints = [] # 2D point in image plane, determined by CV2
 
 # Chessboard variables
-CHESSBOARD_CORNERS_ROWCOUNT = 7
-CHESSBOARD_CORNERS_COLCOUNT = 4
+CHESSBOARD_CORNERS_ROWCOUNT = 9
+CHESSBOARD_CORNERS_COLCOUNT = 6
 
 # Theoretical object points for the chessboard we're calibrating against,
 # These will come out like: 
@@ -32,7 +32,7 @@ objp[:,:2] = numpy.mgrid[0:CHESSBOARD_CORNERS_ROWCOUNT,0:CHESSBOARD_CORNERS_COLC
 # Need a set of images or a video taken with the camera you want to calibrate
 # I'm using a set of images taken with the camera with the naming convention:
 # 'camera-pic-of-chessboard-<NUMBER>.jpg'
-images = glob.glob('/home/pi/opencv-examples/CalibrationByChessboard/camera-pic-of-chessboard-*.jpg')
+images = glob.glob('./CalibrationByChessboard/camera-pic-of-chessboard-*.jpg')
 # images = glob.glob('/home/pi/opencv-examples/CalibrationByChessboard/test_*.jpg')
 # All images used should be the same size, which if taken with the same camera shouldn't be a problem
 imageSize = None # Determined at runtime
