@@ -32,7 +32,7 @@ objp[:,:2] = numpy.mgrid[0:CHESSBOARD_CORNERS_ROWCOUNT,0:CHESSBOARD_CORNERS_COLC
 # Need a set of images or a video taken with the camera you want to calibrate
 # I'm using a set of images taken with the camera with the naming convention:
 # 'camera-pic-of-chessboard-<NUMBER>.jpg'
-images = glob.glob('./CalibrationByChessboard/camera-pic-of-chessboard-*.jpg')
+images = glob.glob('./CalibrationByChessboard/camera-pic-of-chessboard2-*.jpg')
 # images = glob.glob('/home/pi/opencv-examples/CalibrationByChessboard/test_*.jpg')
 # All images used should be the same size, which if taken with the same camera shouldn't be a problem
 imageSize = None # Determined at runtime
