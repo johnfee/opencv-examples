@@ -9,7 +9,7 @@ with open('./calibration.pckl', 'rb') as f:
 
 
 # img = cv.imread('/home/pi/opencv-examples/CalibrationByChessboard/camera-pic-of-chessboard-01.jpg')
-img = cv.imread('./CalibrationByChessboard/camera-pic-of-chessboard2-01.jpg')
+img = cv.imread('./CalibrationByChessboard/test1296x972.jpg')
 h, w, c = img.shape
 newCameraMatrix, roi = cv.getOptimalNewCameraMatrix(cameraMatrix, distCoeffs, (w,h), 1, (w,h))
 
@@ -19,4 +19,4 @@ dst = cv.undistort(img, cameraMatrix, distCoeffs, None, newCameraMatrix)
 # crop the image
 x, y, w, h = roi
 dst = dst[y:y+h, x:x+w]
-cv.imwrite('calibresult2_test.png', dst)
+cv.imwrite('test1296x972_undistorted.png', dst)
