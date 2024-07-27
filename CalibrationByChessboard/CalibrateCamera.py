@@ -32,7 +32,7 @@ objp[:,:2] = numpy.mgrid[0:CHESSBOARD_CORNERS_ROWCOUNT,0:CHESSBOARD_CORNERS_COLC
 # Need a set of images or a video taken with the camera you want to calibrate
 # I'm using a set of images taken with the camera with the naming convention:
 # 'camera-pic-of-chessboard-<NUMBER>.jpg'
-images = glob.glob('./CalibrationByChessboard/camera-pic-of-chessboard2-*.jpg')
+images = glob.glob('./CalibrationByChessboard/camera-pic-of-chessboard-*.jpg')
 # images = glob.glob('/home/pi/opencv-examples/CalibrationByChessboard/test_*.jpg')
 # All images used should be the same size, which if taken with the same camera shouldn't be a problem
 imageSize = None # Determined at runtime
@@ -107,7 +107,7 @@ print(distCoeffs)
     
 # Save values to be used where matrix+dist is required, for instance for posture estimation
 # I save files in a pickle file, but you can use yaml or whatever works for you
-f = open('calibration.pckl', 'wb')
+f = open('calibrationPhoto.pckl', 'wb')
 pickle.dump([cameraMatrix, distCoeffs, rvecs, tvecs], f)
 f.close()
     
