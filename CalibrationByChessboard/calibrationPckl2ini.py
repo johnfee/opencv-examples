@@ -3,7 +3,7 @@ import configparser
 import numpy as np
 
 # Load calibration parameters
-with open('./calibrationWdCam2.pckl', 'rb') as f:
+with open('./calibrationWdCam2_undistorted.pckl', 'rb') as f:
     cameraMatrix, distCoeffs, rvecs, tvecs = pickle.load(f)
 
 # Create a ConfigParser object
@@ -27,7 +27,7 @@ config.set('CameraCalibration', 'rvecs', rvecs_str)
 config.set('CameraCalibration', 'tvecs', tvecs_str)
 
 # Write the configuration to an ini file
-with open('calibrationWdCam2.ini', 'w') as configfile:
+with open('calibrationWdCam2_undistorted.ini', 'w') as configfile:
     config.write(configfile)
 
 print('Data written to calibrationWdCam2.ini')
