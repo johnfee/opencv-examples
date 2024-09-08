@@ -78,7 +78,7 @@ img_points = [np.array(p, dtype=np.float32) for p in img_points]
 # Use cv2.calibrateCamera
 flags = cv2.CALIB_FIX_ASPECT_RATIO | cv2.CALIB_RATIONAL_MODEL
 ret, camera_matrix, dist_coeffs, rvecs, tvecs = cv2.calibrateCamera(
-    obj_points, img_points, gray.shape[::-1], None, None, flags = flags
+    obj_points, img_points, gray.shape[::-1], None, None, flags=flags
 )
 
 # Check if calibration was successful
@@ -89,7 +89,6 @@ if ret:
 else:
     print("Calibration failed.")
 
-
 # Undistort the grid
 undistorted_grid = cv2.undistort(img, camera_matrix, dist_coeffs)
 
@@ -99,7 +98,6 @@ cv2.waitKey(0)
 
 # Save the undistorted grid
 cv2.imwrite('undistorted_grid.png', undistorted_grid)
-
 
 # Undistort the image
 foto = cv2.imread('CalibrationByChessboard/TableWdCam2_undistorted.png')
@@ -137,5 +135,26 @@ for idx, kp in enumerate(sorted_keypoints.reshape(-1, 2)):
 
 # Display the image with keypoints and their numbers
 cv2.imshow('Sorted Keypoints with Numbers', im_with_keypoints)
+cv2.waitKey(0)
+
+# Draw the object points (in the world space) with their numbers
+scale_factor = 150  # Increased scale for visualization
+padding = 100  # Padding for the top-left corner
+
+# Create a larger blank white image with padding in the top left corner
+im_with_obj_points = np.ones((pattern_size[1] * scale_factor + padding, 
+                              pattern_size[0] * scale_factor + padding, 3), dtype=np.uint8) * 255
+
+for idx, pt in enumerate(object_points):
+    position = (int(pt[0] * scale_factor) + padding, int(pt[1] * scale_factor) + padding)  # Scale and add padding
+    
+    # Draw a black circle for the object point
+    cv2.circle(im_with_obj_points, position, 15, (0, 0, 0), -1)
+    
+    # Draw the index number of the object point in red for contrast
+    cv2.putText(im_with_obj_points, str(idx), position, cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2, cv2.LINE_AA)
+
+# Display the object points with their numbers
+cv2.imshow('Object Points with Numbers', im_with_obj_points)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
