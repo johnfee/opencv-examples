@@ -6,7 +6,7 @@ img = cv2.imread('CalibrationByChessboard/circleGrid_UwdCam_BW.png')
 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
 pattern_size = (14, 9)  # Number of circles per row and column
-square_size = 0.025  # Change this to your actual square size in meters or any unit you use
+square_size = 0.290  # Change this to your actual square size in meters or any unit you use
 
 # Create a SimpleBlobDetector with custom parameters
 params = cv2.SimpleBlobDetector_Params()
@@ -76,8 +76,9 @@ obj_points = [object_points]
 img_points = [np.array(p, dtype=np.float32) for p in img_points]
 
 # Use cv2.calibrateCamera
+flags = cv2.CALIB_FIX_ASPECT_RATIO | cv2.CALIB_RATIONAL_MODEL
 ret, camera_matrix, dist_coeffs, rvecs, tvecs = cv2.calibrateCamera(
-    obj_points, img_points, gray.shape[::-1], None, None
+    obj_points, img_points, gray.shape[::-1], None, None, flags = flags
 )
 
 # Check if calibration was successful
