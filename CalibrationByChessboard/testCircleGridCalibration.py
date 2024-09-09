@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 # Load image and convert to grayscale
-img = cv2.imread('CalibrationByChessboard/circleGrid_UwdCam_BW.png')
+img = cv2.imread('CalibrationByChessboard/circleGrid_HqUwdCam_2028x1520_BW.png')
 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
 pattern_size = (14, 9)  # Number of circles per row and column
@@ -33,33 +33,50 @@ detector = cv2.SimpleBlobDetector_create(params)
 # Detect keypoints
 keypoints = detector.detect(gray)
 
-# Convert keypoints to a numpy array of (x, y) points
-points = np.array([kp.pt for kp in keypoints], dtype=np.float32)
+# Draw keypoints on the image for visual reference
+img_with_keypoints = cv2.drawKeypoints(img, keypoints, np.array([]), (0, 0, 255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 
-# Sort keypoints function
-def sort_keypoints(points, pattern_size):
-    # Sort by x-coordinate, then by y-coordinate
-    sorted_by_x = points[np.argsort(points[:, 0])]
-    
-    # Split sorted points into rows
-    rows = []
-    num_points_per_row = pattern_size[0]
-    
-    for i in range(pattern_size[1]):
-        row_points = sorted_by_x[i*num_points_per_row:(i+1)*num_points_per_row]
-        rows.append(row_points)
-    
-    # Further sort each row by y-coordinate
-    for i in range(pattern_size[1]):
-        rows[i] = rows[i][np.argsort(rows[i][:, 1])]
-    
-    # Flatten the sorted rows into a single array
-    sorted_points = np.vstack(rows)
-    
-    return sorted_points
+# Mouse callback function for selecting keypoints manually
+sorted_keypoints = []
+def select_keypoint(event, x, y, flags, param):
+    if event == cv2.EVENT_LBUTTONDOWN:
+        min_dist = float('inf')
+        selected_kp = None
+        for kp in keypoints:
+            dist = np.sqrt((kp.pt[0] - x) ** 2 + (kp.pt[1] - y) ** 2)
+            if dist < min_dist:
+                min_dist = dist
+                selected_kp = kp
+        
+        if selected_kp is not None:
+            sorted_keypoints.append(selected_kp)
+            print(f"Selected keypoint at: ({selected_kp.pt[0]}, {selected_kp.pt[1]})")
+            cv2.circle(img_with_keypoints, (int(selected_kp.pt[0]), int(selected_kp.pt[1])), 15, (0, 255, 0), -1)
+            
+            # Print the number in red
+            cv2.putText(img_with_keypoints, str(len(sorted_keypoints)), 
+                        (int(selected_kp.pt[0]), int(selected_kp.pt[1])), 
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2, cv2.LINE_AA)
+            
+            # Update the window
+            cv2.imshow("Select Keypoints", img_with_keypoints)
 
-# Sort keypoints using the improved function
-sorted_keypoints = sort_keypoints(points, pattern_size)
+# Display the image and set the mouse callback
+cv2.namedWindow("Select Keypoints")
+cv2.setMouseCallback("Select Keypoints", select_keypoint)
+
+# Show the image
+cv2.imshow("Select Keypoints", img_with_keypoints)
+
+# Wait for user to finish selecting points
+print("Click on the keypoints in the desired order. Press 'q' when done.")
+while True:
+    key = cv2.waitKey(1) & 0xFF
+    if key == ord('q'):
+        break
+
+# Convert selected keypoints to numpy array
+sorted_points = np.array([kp.pt for kp in sorted_keypoints], dtype=np.float32)
 
 # Create object points (3D points in the world space)
 object_points = np.zeros((np.prod(pattern_size), 3), dtype=np.float32)
@@ -67,7 +84,7 @@ object_points[:, :2] = np.indices(pattern_size).T.reshape(-1, 2)
 object_points *= square_size
 
 # Prepare image points
-img_points = [sorted_keypoints.reshape(-1, 2)]
+img_points = [sorted_points.reshape(-1, 2)]
 
 # Add the object points and image points to lists
 obj_points = [object_points]
@@ -110,51 +127,4 @@ cv2.waitKey(0)
 # Save the undistorted image
 cv2.imwrite('undistorted_foto2.png', undistorted_img)
 
-# Create a copy of the original image to draw on
-im_with_keypoints = img.copy()
-
-# Draw keypoints and their numbers
-for idx, kp in enumerate(sorted_keypoints.reshape(-1, 2)):
-    position = (int(kp[0]), int(kp[1]))
-    
-    # Draw a black circle for the keypoint
-    cv2.circle(im_with_keypoints, position, 15, (0, 0, 0), -1)  # Larger circle for better visibility
-    
-    # Add a background rectangle behind the text
-    text = str(idx)
-    text_size = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)[0]
-    text_x = position[0] - text_size[0] // 2
-    text_y = position[1] + text_size[1] // 2
-    
-    # Draw a filled rectangle for the text background
-    cv2.rectangle(im_with_keypoints, (text_x - 5, text_y - text_size[1] - 5), 
-                  (text_x + text_size[0] + 5, text_y + 5), (0, 0, 0), -1)
-    
-    # Draw the text in white
-    cv2.putText(im_with_keypoints, text, (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
-
-# Display the image with keypoints and their numbers
-cv2.imshow('Sorted Keypoints with Numbers', im_with_keypoints)
-cv2.waitKey(0)
-
-# Draw the object points (in the world space) with their numbers
-scale_factor = 150  # Increased scale for visualization
-padding = 100  # Padding for the top-left corner
-
-# Create a larger blank white image with padding in the top left corner
-im_with_obj_points = np.ones((pattern_size[1] * scale_factor + padding, 
-                              pattern_size[0] * scale_factor + padding, 3), dtype=np.uint8) * 255
-
-for idx, pt in enumerate(object_points):
-    position = (int(pt[0] * scale_factor) + padding, int(pt[1] * scale_factor) + padding)  # Scale and add padding
-    
-    # Draw a black circle for the object point
-    cv2.circle(im_with_obj_points, position, 15, (0, 0, 0), -1)
-    
-    # Draw the index number of the object point in red for contrast
-    cv2.putText(im_with_obj_points, str(idx), position, cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2, cv2.LINE_AA)
-
-# Display the object points with their numbers
-cv2.imshow('Object Points with Numbers', im_with_obj_points)
-cv2.waitKey(0)
 cv2.destroyAllWindows()

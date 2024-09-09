@@ -1,84 +1,73 @@
 import cv2
 import numpy as np
 
-# Load image and convert to grayscale
+# Load the image
 img = cv2.imread('CalibrationByChessboard/circleGrid_UwdCam_BW.png')
-gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-pattern_size = (14, 9)  # Number of circles per row and column
-square_size = 0.290  # Change this to your actual square size in meters or any unit you use
+# Shrink the image by 50%
+img = cv2.resize(img, None, fx=0.7, fy=0.7, interpolation=cv2.INTER_AREA)
+
+# Convert to grayscale
+gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
 # Create a SimpleBlobDetector with custom parameters
 params = cv2.SimpleBlobDetector_Params()
-
-# Filter by Area
 params.filterByArea = True
-params.minArea = 40
+params.minArea = 20
 params.maxArea = 18000
-
 params.minDistBetweenBlobs = 20
-
 params.filterByColor = True
 params.filterByConvexity = False
-
-# Filter by Circularity
 params.filterByCircularity = False
-
-# Filter by Inertia
 params.filterByInertia = False
 
-# Create the detector with the parameters
 detector = cv2.SimpleBlobDetector_create(params)
 
 # Detect keypoints
 keypoints = detector.detect(gray)
 
-# Convert keypoints to a numpy array of (x, y) points
-points = np.array([kp.pt for kp in keypoints], dtype=np.float32)
-
-# Sort keypoints function
-def sort_keypoints(points, pattern_size):
-    # Sort by x-coordinate, then by y-coordinate
-    sorted_by_x = points[np.argsort(points[:, 0])]
-    
-    # Split sorted points into rows
-    rows = []
-    num_points_per_row = pattern_size[0]
-    
-    for i in range(pattern_size[1]):
-        row_points = sorted_by_x[i*num_points_per_row:(i+1)*num_points_per_row]
-        rows.append(row_points)
-    
-    # Further sort each row by y-coordinate
-    for i in range(pattern_size[1]):
-        rows[i] = rows[i][np.argsort(rows[i][:, 1])]
-    
-    # Flatten the sorted rows into a single array
-    sorted_points = np.vstack(rows)
-    
-    return sorted_points
-
-# Sort keypoints using the improved function
-sorted_keypoints = sort_keypoints(points, pattern_size)
-
-# Create a blank image to draw the chessboard
-chessboard_img = np.zeros_like(img)
-
 # Draw keypoints on the image
-for point in sorted_keypoints:
-    x, y = point
-    cv2.circle(chessboard_img, (int(x), int(y)), 10, (0, 255, 0), -1)
+img_with_keypoints = cv2.drawKeypoints(img, keypoints, np.array([]), (0, 0, 255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 
-# Draw grid lines (for visualization of the chessboard pattern)
-for i in range(pattern_size[1] + 1):
-    cv2.line(chessboard_img, (0, i * (img.shape[0] // pattern_size[1])), 
-             (img.shape[1], i * (img.shape[0] // pattern_size[1])), (255, 0, 0), 1)
+# Mouse callback function
+sorted_keypoints = []
+def select_keypoint(event, x, y, flags, param):
+    if event == cv2.EVENT_LBUTTONDOWN:
+        min_dist = float('inf')
+        selected_kp = None
+        for kp in keypoints:
+            dist = np.sqrt((kp.pt[0] - x) ** 2 + (kp.pt[1] - y) ** 2)
+            if dist < min_dist:
+                min_dist = dist
+                selected_kp = kp
+        
+        if selected_kp is not None:
+            sorted_keypoints.append(selected_kp)
+            print(f"Selected keypoint at: ({selected_kp.pt[0]}, {selected_kp.pt[1]})")
+            cv2.circle(img_with_keypoints, (int(selected_kp.pt[0]), int(selected_kp.pt[1])), 15, (0, 255, 0), -1)
+            
+            # Print the number in red
+            cv2.putText(img_with_keypoints, str(len(sorted_keypoints)), (int(selected_kp.pt[0]), int(selected_kp.pt[1])), 
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2, cv2.LINE_AA)
+            
+            cv2.imshow("Select Keypoints", img_with_keypoints)
 
-for i in range(pattern_size[0] + 1):
-    cv2.line(chessboard_img, (i * (img.shape[1] // pattern_size[0]), 0), 
-             (i * (img.shape[1] // pattern_size[0]), img.shape[0]), (255, 0, 0), 1)
+# Display the image and set the mouse callback
+cv2.namedWindow("Select Keypoints")
+cv2.setMouseCallback("Select Keypoints", select_keypoint)
+cv2.imshow("Select Keypoints", img_with_keypoints)
 
-# Display the resulting image
-cv2.imshow('Sorted Chessboard', chessboard_img)
-cv2.waitKey(0)
+# Wait for user to finish selecting points
+print("Click on the keypoints in the desired order. Press 'q' when done.")
+while True:
+    key = cv2.waitKey(1) & 0xFF
+    if key == ord('q'):
+        break
+
+# Print the sorted keypoints
+sorted_points = np.array([kp.pt for kp in sorted_keypoints], dtype=np.float32)
+print("Sorted keypoints:", sorted_points)
+
 cv2.destroyAllWindows()
+
+# Now `sorted_points` can be used for further processing
