@@ -36,14 +36,22 @@ keypoints = detector.detect(gray)
 # Draw keypoints on the image for visual reference
 img_with_keypoints = cv2.drawKeypoints(img, keypoints, np.array([]), (0, 0, 255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 
+# Scale down the image for display
+scale_factor = 0.5  # Adjust this factor as needed to fit your screen
+img_display = cv2.resize(img_with_keypoints, None, fx=scale_factor, fy=scale_factor)
+
 # Mouse callback function for selecting keypoints manually
 sorted_keypoints = []
+
 def select_keypoint(event, x, y, flags, param):
     if event == cv2.EVENT_LBUTTONDOWN:
+        # Map the clicked point back to the original image size
+        orig_x, orig_y = int(x / scale_factor), int(y / scale_factor)
+        
         min_dist = float('inf')
         selected_kp = None
         for kp in keypoints:
-            dist = np.sqrt((kp.pt[0] - x) ** 2 + (kp.pt[1] - y) ** 2)
+            dist = np.sqrt((kp.pt[0] - orig_x) ** 2 + (kp.pt[1] - orig_y) ** 2)
             if dist < min_dist:
                 min_dist = dist
                 selected_kp = kp
@@ -51,22 +59,23 @@ def select_keypoint(event, x, y, flags, param):
         if selected_kp is not None:
             sorted_keypoints.append(selected_kp)
             print(f"Selected keypoint at: ({selected_kp.pt[0]}, {selected_kp.pt[1]})")
-            cv2.circle(img_with_keypoints, (int(selected_kp.pt[0]), int(selected_kp.pt[1])), 15, (0, 255, 0), -1)
+            cv2.circle(img_display, (int(selected_kp.pt[0] * scale_factor), int(selected_kp.pt[1] * scale_factor)), 
+                       15, (0, 255, 0), -1)
             
             # Print the number in red
-            cv2.putText(img_with_keypoints, str(len(sorted_keypoints)), 
-                        (int(selected_kp.pt[0]), int(selected_kp.pt[1])), 
+            cv2.putText(img_display, str(len(sorted_keypoints)), 
+                        (int(selected_kp.pt[0] * scale_factor), int(selected_kp.pt[1] * scale_factor)), 
                         cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2, cv2.LINE_AA)
             
             # Update the window
-            cv2.imshow("Select Keypoints", img_with_keypoints)
+            cv2.imshow("Select Keypoints", img_display)
 
 # Display the image and set the mouse callback
-cv2.namedWindow("Select Keypoints")
+cv2.namedWindow("Select Keypoints", cv2.WINDOW_NORMAL)
 cv2.setMouseCallback("Select Keypoints", select_keypoint)
 
 # Show the image
-cv2.imshow("Select Keypoints", img_with_keypoints)
+cv2.imshow("Select Keypoints", img_display)
 
 # Wait for user to finish selecting points
 print("Click on the keypoints in the desired order. Press 'q' when done.")
