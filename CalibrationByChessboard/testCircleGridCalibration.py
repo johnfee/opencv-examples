@@ -150,7 +150,7 @@ cv2.imwrite('undistorted_foto2.png', undistorted_img)
 # Create a white canvas for drawing the distorted chessboard
 canvas = np.ones_like(img) * 255
 
-# Draw the distorted chessboard pattern
+# Draw the distorted chessboard pattern (middle)
 cols, rows = pattern_size
 square_count = 1
 for r in range(rows - 1): 
@@ -163,8 +163,93 @@ for r in range(rows - 1):
         if square_count % 2 == 1 and idx1 < len(sorted_points) and idx2 < len(sorted_points) and idx3 < len(sorted_points) and idx4 < len(sorted_points):
             pts = np.array([sorted_points[idx1], sorted_points[idx2], sorted_points[idx4], sorted_points[idx3]], np.int32)
             pts = pts.reshape((-1, 1, 2))
-            cv2.fillPoly(canvas, [pts], color=(0, 0, 0))  # Fill the square wit
+            cv2.fillPoly(canvas, [pts], color=(0, 0, 0))  # Fill the square
         square_count += 1
+        
+# Draw the distorted chessboard pattern (top line)
+square_count = 1
+for r in range(cols - 1): 
+    id1 = r
+    id2 = id1 + 1  
+    x1=sorted_points[id1][0]
+    y1=sorted_points[id1][1]  
+    x2=sorted_points[id2][0]
+    y2=sorted_points[id2][1] 
+    
+    if square_count % 2 != 1 and id1 < len(sorted_points) and id2 < len(sorted_points):
+        # Define the points of the polygon
+        pts = np.array([[x1, y1], [x2, y2], [x2, y2-50], [x1, y1-50], [x1, y1]], np.int32)
+        pts = pts.reshape((-1, 1, 2))  # Required shape for fillPoly        
+        cv2.fillPoly(canvas, [pts], color=(0, 0, 0))  # Fill the square
+    square_count += 1
+    
+# Draw the distorted chessboard pattern (bottom line)
+square_count = 1
+for r in range(cols - 1): 
+    id1 = rows*cols - cols + r
+    id2 = id1 + 1  
+    x1=sorted_points[id1][0]
+    y1=sorted_points[id1][1]  
+    x2=sorted_points[id2][0]
+    y2=sorted_points[id2][1] 
+    
+    if square_count % 2 == 1 and id1 < len(sorted_points) and id2 < len(sorted_points):
+        # Define the points of the polygon
+        pts = np.array([[x1, y1], [x2, y2], [x2, y2+50], [x1, y1+50], [x1, y1]], np.int32)
+        pts = pts.reshape((-1, 1, 2))  # Required shape for fillPoly        
+        cv2.fillPoly(canvas, [pts], color=(0, 0, 0))  # Fill the square
+    square_count += 1
+    
+# Draw the distorted chessboard pattern (left line)
+square_count = 1
+for r in range(rows - 1): 
+    id1 = r*cols
+    id2 = id1 + cols  
+    x1=sorted_points[id1][0]
+    y1=sorted_points[id1][1]  
+    x2=sorted_points[id2][0]
+    y2=sorted_points[id2][1] 
+    
+    if square_count % 2 != 1 and id1 < len(sorted_points) and id2 < len(sorted_points):
+        # Define the points of the polygon
+        pts = np.array([[x1, y1], [x2, y2], [x2-50, y2], [x1-50, y1], [x1, y1]], np.int32)
+        pts = pts.reshape((-1, 1, 2))  # Required shape for fillPoly        
+        cv2.fillPoly(canvas, [pts], color=(0, 0, 0))  # Fill the square
+    square_count += 1
+
+# Draw the distorted chessboard pattern (right line)
+square_count = 1
+for r in range(rows - 1): 
+    id1 = r*cols + cols -1
+    id2 = id1 + cols  
+    x1=sorted_points[id1][0]
+    y1=sorted_points[id1][1]  
+    x2=sorted_points[id2][0]
+    y2=sorted_points[id2][1] 
+    
+    if square_count % 2 != 1 and id1 < len(sorted_points) and id2 < len(sorted_points):
+        # Define the points of the polygon
+        pts = np.array([[x1, y1], [x2, y2], [x2+50, y2], [x1+50, y1], [x1, y1]], np.int32)
+        pts = pts.reshape((-1, 1, 2))  # Required shape for fillPoly        
+        cv2.fillPoly(canvas, [pts], color=(0, 0, 0))  # Fill the square
+    square_count += 1
+    
+    # Draw the distorted chessboard pattern (top left square)
+    x0=sorted_points[0][0]
+    y0=sorted_points[0][1]
+    
+    pts = np.array([[x0, y0], [x0, y0-50], [x0-50, y0-50], [x0-50, y0], [x0-50, y0]], np.int32)
+    pts = pts.reshape((-1, 1, 2))  # Required shape for fillPoly        
+    cv2.fillPoly(canvas, [pts], color=(0, 0, 0))  # Fill the square
+    
+    # Draw the distorted chessboard pattern (top right square)
+    x0=sorted_points[cols-1][0]
+    y0=sorted_points[cols-1][1]
+    
+    pts = np.array([[x0, y0], [x0, y0-50], [x0+50, y0-50], [x0+50, y0], [x0+50, y0]], np.int32)
+    pts = pts.reshape((-1, 1, 2))  # Required shape for fillPoly        
+    cv2.fillPoly(canvas, [pts], color=(0, 0, 0))  # Fill the square
+    
 
 
 # Display the distorted chessboard pattern
