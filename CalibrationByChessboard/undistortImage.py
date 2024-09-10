@@ -19,4 +19,4 @@ dst = cv.undistort(img, cameraMatrix, distCoeffs, None, cameraMatrix)
 # crop the image
 # x, y, w, h = roi
 # dst = dst[y:y+h, x:x+w]
-cv.imwrite('CalibrationByChessboard/tableHqUwdCam_extended_undistorted.png', dst)
+cv.imwrite('CalibrationByChessboard/circleGrid_HqUwdCam_2028x1520_undistorted.png', dst)
