@@ -15,8 +15,8 @@ objpoints = [] # 3D point in real world space where chess squares are
 imgpoints = [] # 2D point in image plane, determined by CV2
 
 # Chessboard variables
-CHESSBOARD_CORNERS_ROWCOUNT = 15
-CHESSBOARD_CORNERS_COLCOUNT = 8
+CHESSBOARD_CORNERS_ROWCOUNT = 12
+CHESSBOARD_CORNERS_COLCOUNT = 7
 
 # Theoretical object points for the chessboard we're calibrating against,
 # These will come out like: 
@@ -32,7 +32,7 @@ objp[:,:2] = numpy.mgrid[0:CHESSBOARD_CORNERS_ROWCOUNT,0:CHESSBOARD_CORNERS_COLC
 # Need a set of images or a video taken with the camera you want to calibrate
 # I'm using a set of images taken with the camera with the naming convention:
 # 'camera-pic-of-chessboard-<NUMBER>.jpg'
-images = glob.glob('/home/johannes/Github/opencv-examples/CalibrationByChessboard/tableHqUwdCam_extended.jpg')
+images = glob.glob('/home/johannes/Github/opencv-examples/CalibrationByChessboard/distorted_chessboard_pattern.png')
 # images = glob.glob('/home/pi/opencv-examples/CalibrationByChessboard/test_*.jpg')
 # All images used should be the same size, which if taken with the same camera shouldn't be a problem
 imageSize = None # Determined at runtime
@@ -107,10 +107,10 @@ print(distCoeffs)
     
 # Save values to be used where matrix+dist is required, for instance for posture estimation
 # I save files in a pickle file, but you can use yaml or whatever works for you
-f = open('calibrationHdUdwCam.pckl', 'wb')
+f = open('calibrationHdUwdCam.pckl', 'wb')
 pickle.dump([cameraMatrix, distCoeffs, rvecs, tvecs], f)
 f.close()
     
 # Print to console our success
-print('Calibration successful. Calibration file used: {}'.format('calibrationHdUdwCam.pckl'))
+print('Calibration successful. Calibration file used: {}'.format('calibrationHdUwdCam.pckl'))
 

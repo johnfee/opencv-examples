@@ -9,7 +9,7 @@ with open('calibrationHdUwdCam.pckl', 'rb') as f:
 
 
 # img = cv.imread('/home/pi/opencv-examples/CalibrationByChessboard/camera-pic-of-chessboard-01.jpg')
-img = cv.imread('CalibrationByChessboard/tableHqUwdCam_extended.jpg')
+img = cv.imread('CalibrationByChessboard/circleGrid_HqUwdCam_2028x1520.png')
 h, w, c = img.shape
 # newCameraMatrix, roi = cv.getOptimalNewCameraMatrix(cameraMatrix, distCoeffs, (w,h), 1, (w,h))
 

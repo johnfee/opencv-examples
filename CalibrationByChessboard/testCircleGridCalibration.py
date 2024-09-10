@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import os
 
 # Load image and convert to grayscale
 img = cv2.imread('CalibrationByChessboard/circleGrid_HqUwdCam_2028x1520_BW.png')
@@ -40,52 +41,62 @@ img_with_keypoints = cv2.drawKeypoints(img, keypoints, np.array([]), (0, 0, 255)
 scale_factor = 0.5  # Adjust this factor as needed to fit your screen
 img_display = cv2.resize(img_with_keypoints, None, fx=scale_factor, fy=scale_factor)
 
-# Mouse callback function for selecting keypoints manually
-sorted_keypoints = []
+# File path to store the sorted keypoints
+sorted_keypoints_file = 'sorted_keypoints.npy'
 
-def select_keypoint(event, x, y, flags, param):
-    if event == cv2.EVENT_LBUTTONDOWN:
-        # Map the clicked point back to the original image size
-        orig_x, orig_y = int(x / scale_factor), int(y / scale_factor)
-        
-        min_dist = float('inf')
-        selected_kp = None
-        for kp in keypoints:
-            dist = np.sqrt((kp.pt[0] - orig_x) ** 2 + (kp.pt[1] - orig_y) ** 2)
-            if dist < min_dist:
-                min_dist = dist
-                selected_kp = kp
-        
-        if selected_kp is not None:
-            sorted_keypoints.append(selected_kp)
-            print(f"Selected keypoint at: ({selected_kp.pt[0]}, {selected_kp.pt[1]})")
-            cv2.circle(img_display, (int(selected_kp.pt[0] * scale_factor), int(selected_kp.pt[1] * scale_factor)), 
-                       15, (0, 255, 0), -1)
-            
-            # Print the number in red
-            cv2.putText(img_display, str(len(sorted_keypoints)), 
-                        (int(selected_kp.pt[0] * scale_factor), int(selected_kp.pt[1] * scale_factor)), 
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2, cv2.LINE_AA)
-            
-            # Update the window
-            cv2.imshow("Select Keypoints", img_display)
+# Function to manually select keypoints if no saved keypoints are found
+def select_keypoints_manually():
+    sorted_keypoints = []
 
-# Display the image and set the mouse callback
-cv2.namedWindow("Select Keypoints", cv2.WINDOW_NORMAL)
-cv2.setMouseCallback("Select Keypoints", select_keypoint)
+    def select_keypoint(event, x, y, flags, param):
+        if event == cv2.EVENT_LBUTTONDOWN:
+            orig_x, orig_y = int(x / scale_factor), int(y / scale_factor)
 
-# Show the image
-cv2.imshow("Select Keypoints", img_display)
+            min_dist = float('inf')
+            selected_kp = None
+            for kp in keypoints:
+                dist = np.sqrt((kp.pt[0] - orig_x) ** 2 + (kp.pt[1] - orig_y) ** 2)
+                if dist < min_dist:
+                    min_dist = dist
+                    selected_kp = kp
 
-# Wait for user to finish selecting points
-print("Click on the keypoints in the desired order. Press 'q' when done.")
-while True:
-    key = cv2.waitKey(1) & 0xFF
-    if key == ord('q'):
-        break
+            if selected_kp is not None:
+                sorted_keypoints.append(selected_kp)
+                print(f"Selected keypoint at: ({selected_kp.pt[0]}, {selected_kp.pt[1]})")
+                cv2.circle(img_display, (int(selected_kp.pt[0] * scale_factor), int(selected_kp.pt[1] * scale_factor)),
+                           15, (0, 255, 0), -1)
 
-# Convert selected keypoints to numpy array
-sorted_points = np.array([kp.pt for kp in sorted_keypoints], dtype=np.float32)
+                cv2.putText(img_display, str(len(sorted_keypoints)),
+                            (int(selected_kp.pt[0] * scale_factor), int(selected_kp.pt[1] * scale_factor)),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2, cv2.LINE_AA)
+
+                cv2.imshow("Select Keypoints", img_display)
+
+    cv2.namedWindow("Select Keypoints", cv2.WINDOW_NORMAL)
+    cv2.setMouseCallback("Select Keypoints", select_keypoint)
+    cv2.imshow("Select Keypoints", img_display)
+
+    print("Click on the keypoints in the desired order. Press 'q' when done.")
+    while True:
+        key = cv2.waitKey(1) & 0xFF
+        if key == ord('q'):
+            break
+
+    cv2.destroyAllWindows()
+
+    sorted_points = np.array([kp.pt for kp in sorted_keypoints], dtype=np.float32)
+    
+    # Save sorted keypoints to a file
+    np.save(sorted_keypoints_file, sorted_points)
+    return sorted_points
+
+# Load previously sorted keypoints if they exist
+if os.path.exists(sorted_keypoints_file):
+    print("Loading sorted keypoints from previous run.")
+    sorted_points = np.load(sorted_keypoints_file)
+else:
+    print("No saved keypoints found. Please select the keypoints manually.")
+    sorted_points = select_keypoints_manually()
 
 # Create object points (3D points in the world space)
 object_points = np.zeros((np.prod(pattern_size), 3), dtype=np.float32)
@@ -136,4 +147,57 @@ cv2.waitKey(0)
 # Save the undistorted image
 cv2.imwrite('undistorted_foto2.png', undistorted_img)
 
+# Create a white canvas for drawing the distorted chessboard
+canvas = np.ones_like(img) * 255
+
+# Draw the distorted chessboard pattern
+cols, rows = pattern_size
+square_count = 1
+for r in range(rows - 1): 
+    for c in range(cols - 1):
+        idx1 = r * cols + c
+        idx2 = idx1 + 1
+        idx3 = (r + 1) * cols + c
+        idx4 = idx3 + 1
+
+        if square_count % 2 == 1 and idx1 < len(sorted_points) and idx2 < len(sorted_points) and idx3 < len(sorted_points) and idx4 < len(sorted_points):
+            pts = np.array([sorted_points[idx1], sorted_points[idx2], sorted_points[idx4], sorted_points[idx3]], np.int32)
+            pts = pts.reshape((-1, 1, 2))
+            cv2.fillPoly(canvas, [pts], color=(0, 0, 0))  # Fill the square wit
+        square_count += 1
+
+
+# Display the distorted chessboard pattern
+cv2.imshow('Distorted Chessboard Pattern', canvas)
+cv2.waitKey(0)
+
+# Save the distorted chessboard pattern
+cv2.imwrite('distorted_chessboard_pattern.png', canvas)
+
+# Draw keypoints and their numbers
+im_with_keypoints = img.copy()
+
+# Draw keypoints and their numbers
+for idx, kp in enumerate(sorted_points.reshape(-1, 2)):
+    position = (int(kp[0]), int(kp[1]))
+    
+    # Draw a black circle for the keypoint
+    cv2.circle(im_with_keypoints, position, 15, (0, 0, 0), -1)  # Larger circle for better visibility
+    
+    # Add a background rectangle behind the text
+    text = str(idx)
+    text_size = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)[0]
+    text_x = position[0] - text_size[0] // 2
+    text_y = position[1] + text_size[1] // 2
+    
+    # Draw a filled rectangle for the text background
+    cv2.rectangle(im_with_keypoints, (text_x - 5, text_y - text_size[1] - 5), 
+                  (text_x + text_size[0] + 5, text_y + 5), (0, 0, 0), -1)
+    
+    # Draw the text in red
+    cv2.putText(im_with_keypoints, text, (text_x, text_y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1, cv2.LINE_AA)
+
+# Display the image with keypoints and their numbers
+cv2.imshow('Sorted Keypoints with Numbers', im_with_keypoints)
+cv2.waitKey(0)
 cv2.destroyAllWindows()
