@@ -3,7 +3,7 @@ import numpy as np
 import os
 
 # Load image and convert to grayscale
-img = cv2.imread('CalibrationByChessboard/circleGrid_HqUwdCam_2028x1520_BW.png')
+img = cv2.imread('CalibrationByChessboard/test_image_2028x1520_BW.png')
 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
 pattern_size = (14, 9)  # Number of circles per row and column
@@ -137,7 +137,7 @@ cv2.waitKey(0)
 cv2.imwrite('undistorted_grid.png', undistorted_grid)
 
 # Undistort the image
-foto = cv2.imread('CalibrationByChessboard/TableWdCam2_undistorted.png')
+foto = cv2.imread('CalibrationByChessboard/test_image_2028x1520_BW.png')
 undistorted_img = cv2.undistort(foto, camera_matrix, dist_coeffs)
 
 # Display the undistorted image
