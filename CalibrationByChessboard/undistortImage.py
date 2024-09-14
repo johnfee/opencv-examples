@@ -30,10 +30,10 @@ src_points = np.float32([
 
 # Define the destination points
 dst_points = np.float32([
-    [0, 0],                # Adjust according to the desired output (example values)
-    [w - 1, 0],            # Top-right corner should remain the same
-    [w - 1, h - 1],        # Bottom-right corner should remain the same
-    [0, h - 1]             # Bottom-left corner should remain the same
+    [0, -40],                # Adjust according to the desired output (example values)
+    [w - 1, 50],            # Top-right corner should remain the same
+    [w - 1, h - 50],        # Bottom-right corner should remain the same
+    [0, h +40]             # Bottom-left corner should remain the same
 ])
 
 # Compute the perspective transformation matrix
